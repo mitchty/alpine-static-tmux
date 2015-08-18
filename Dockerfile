@@ -3,7 +3,7 @@ from alpine:latest
 workdir /tmp
 
 run apk update && apk upgrade && \
-    apk add make gcc musl-dev linux-headers bash file curl
+    apk add make gcc musl-dev linux-headers bash file curl bsd-compat-headers
 
 env dest_prefix /usr/local
 
@@ -30,13 +30,12 @@ run curl -LO ftp://ftp.gnu.org/gnu/ncurses/$ncurses_name.tar.gz -o /tmp/$ncurses
     rm -fr /tmp/$ncurses_name.tar.gz /tmp/$ncurses_name
 
 # et tmux
-env tmux_version 1.9
-env tmux_patch_version a
+env tmux_version 2.0
 env tmux_name tmux-$tmux_version
 env tmux_url $tmux_name/$tmux_name$tmux_patch_version
-add http://sourceforge.net/projects/tmux/files/tmux/$tmux_url.tar.gz/download /tmp/$tmux_name.tar.gz
+add https://github.com/tmux/tmux/releases/download/$tmux_version/$tmux_name.tar.gz /tmp/$tmux_name.tar.gz
 run tar xvzf /tmp/$tmux_name.tar.gz && \
-    cd $tmux_name$tmux_patch_version && \
+    cd $tmux_name && \
     ./configure CFLAGS="-I$dest_prefix/include -I$dest_prefix/include/ncurses" LDFLAGS="-static -L$dest_prefix/lib -L$dest_prefix/include/ncurses -L$dest_prefix/include" && \
     env CPPFLAGS="-I$dest_prefix/include -I$dest_prefix/include/ncurses" LDFLAGS="-static -L$dest_prefix/lib -L$dest_prefix/include/ncurses -L$dest_prefix/include" make && \
     make install && \
