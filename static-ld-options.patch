@@ -1,0 +1,10 @@
+--- pandoc.cabal	2015-09-12 16:16:15.000000000 -0500
++++ pandoc.cabal.static	2015-09-12 16:16:52.000000000 -0500
+@@ -383,6 +383,7 @@
+   Buildable:       True
+ 
+ Executable pandoc
++  ld-options: -static -pthread
+   Build-Depends: pandoc,
+                  pandoc-types >= 1.12.4 && < 1.13,
+                  base >= 4.2 && <5,
