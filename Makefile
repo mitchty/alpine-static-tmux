@@ -3,73 +3,55 @@ TAR:=tar
 .PHONY: docker all
 .DEFAULT:
 
-all: mosh mosh-client mosh-client.stripped mosh-server mosh-server.stripped htop htop.stripped tmux tmux.stripped pandoc pandoc.stripped
+TARGETS:=mosh mosh-client mosh-client.stripped mosh-server mosh-server.stripped htop htop.stripped tmux tmux.stripped jq jq.stripped
+GHCTARGETS:=pandoc pandoc.stripped
+ALLTARGETS:=$(TARGETS) $(GHCTARGETS)
 
-upx: mosh-client.upx mosh-client.stripped.upx mosh-server.upx mosh-server.stripped.upx htop.upx htop.stripped.upx tmux.upx tmux.stripped.upx pandoc.upx pandoc.stripped.upx
-	upx --best --ultra-brute *.upx
+all: $(ALLTARGETS)
+
+UPXS:=mosh-client.stripped.upx mosh-server.stripped.upx htop.stripped.upx tmux.stripped.upx pandoc.stripped.upx jq.stripped.upx
+
+upx: $(UPXS)
 
 dist: static.tar.xz
 
-static.tar.xz:
-	tar cvf static.tar mosh* tmux* htop* pandoc*
-	xz -v9 static.tar
+static.tar.xz: upx
+	tar cvf static.tar $(UPXS)
+	xz -T0 -v9 static.tar
 
-mosh-client.upx: mosh-client
+jq.stripped.upx: jq.stripped
 	cp $< $@
+	upx --best --ultra-brute $@
 mosh-client.stripped.upx: mosh-client.stripped
 	cp $< $@
-mosh-server.upx: mosh-server
-	cp $< $@
+	upx --best --ultra-brute $@
 mosh-server.stripped.upx: mosh-server.stripped
 	cp $< $@
-htop.upx: htop
-	cp $< $@
+	upx --best --ultra-brute $@
 htop.stripped.upx: htop.stripped
 	cp $< $@
-tmux.upx: tmux
-	cp $< $@
+	upx --best --ultra-brute $@
 tmux.stripped.upx: tmux.stripped
 	cp $< $@
-pandoc.upx: pandoc
-	cp $< $@
+	upx --best --ultra-brute $@
 pandoc.stripped.upx: pandoc.stripped
 	cp $< $@
+	upx --best --ultra-brute $@
 
 docker:
 	docker build -t $(IMAGE) .
 
-mosh: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-
-mosh-client: docker
+$(TARGETS): docker
 	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
 	
-mosh-client.stripped: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-
-mosh-server: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-	
-mosh-server.stripped: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-htop: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-	
-htop.stripped: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-
-tmux: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-	
-tmux.stripped: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /usr/bin/$@ | $(TAR) xf - --strip-components=2 -C .
-	
-pandoc: docker
-	docker run -a stdout $(IMAGE) /bin/tar -cf - /root/.cabal/bin/$@ | $(TAR) xf - --strip-components=3 -C .
-
-pandoc.stripped: docker
+$(GHCTARGETS): docker
 	docker run -a stdout $(IMAGE) /bin/tar -cf - /root/.cabal/bin/$@ | $(TAR) xf - --strip-components=3 -C .
 
 clean:
-	docker rmi -f $(IMAGE)
-	-rm *.stripped mosh mosh-client mosh-server htop tmux
+	-rm *.upx $(ALLTARGETS)
+
+distclean: clean
+	-rm static.tar.xz
+
+dockerclean:
+	docker rmi -f $(IMAGE):latest
