@@ -30,7 +30,7 @@ run curl -LO ftp://ftp.gnu.org/gnu/ncurses/$ncurses_name.tar.gz -o /tmp/$ncurses
     rm -fr /tmp/$ncurses_name.tar.gz /tmp/$ncurses_name
 
 # et tmux
-env tmux_version 2.1
+env tmux_version 2.3
 env tmux_name tmux-$tmux_version
 env tmux_url $tmux_name/$tmux_name
 add https://github.com/tmux/tmux/releases/download/$tmux_version/$tmux_name.tar.gz /tmp/$tmux_name.tar.gz
@@ -43,7 +43,8 @@ run tar xvzf /tmp/$tmux_name.tar.gz && \
     cp /usr/bin/tmux /usr/bin/tmux.stripped && \
     strip /usr/bin/tmux.stripped
 
-env htop_version 2.0.1
+# htop
+env htop_version 2.0.2
 env htop_name htop-$htop_version
 add http://hisham.hm/htop/releases/$htop_version/$htop_name.tar.gz /tmp/$htop_name.tar.gz
 run tar xvzf /tmp/$htop_name.tar.gz && \
@@ -55,7 +56,8 @@ run tar xvzf /tmp/$htop_name.tar.gz && \
     cp $dest_prefix/bin/htop $dest_prefix/bin/htop.stripped && \
     strip $dest_prefix/bin/htop.stripped
 
-env mosh_version 1.2.5
+# mobile shell
+env mosh_version 1.2.6
 env mosh_name mosh-$mosh_version
 env mosh_url https://github.com/mobile-shell/mosh/archive/$mosh_name.tar.gz
 add $mosh_url /tmp/$mosh_name.tar.gz
@@ -72,14 +74,13 @@ run tar xvzf /tmp/$mosh_name.tar.gz && \
     strip $dest_prefix/bin/mosh-server.stripped
 
 # pandoc
-copy static-ld-options.patch /tmp/static-ld-options.patch
+env pandoc_version 1.19.1
 env cabaldir /root/.cabal/bin
 workdir /tmp
 run cabal update && cabal install hsb2hs && \
-    cabal get pandoc
-run cd /tmp/pandoc* && \
-    mv /tmp/*.patch /tmp/pandoc* && \
-    patch -p0 pandoc.cabal < static-ld-options.patch &&\
+    cabal get pandoc-$pandoc_version
+run cd /tmp/pandoc-$pandoc_version && \
+    sed -i '/Executable pandoc/a \ \ ld-options: -static' pandoc.cabal && \
     cabal install --flags="embed_data_files" && \
     cp $cabaldir/pandoc $cabaldir/pandoc.stripped && \
     strip $cabaldir/pandoc.stripped
@@ -96,6 +97,7 @@ run tar xvzf /tmp/$oni.tar.gz && \
     make install && \
     rm -fr /tmp/$oni
 
+# jq as well
 env jq_version 1.5
 env jq jq-$jq_version
 add https://github.com/stedolan/jq/releases/download/jq-1.5/jq-1.5.tar.gz /tmp/jq.tar.gz
