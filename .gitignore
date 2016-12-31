@@ -1,1 +1,13 @@
+htop
+htop.stripped
+jq
+jq.stripped
+mosh
+mosh-client
+mosh-client.stripped
+mosh-server
+mosh-server.stripped
+pandoc
+pandoc.stripped
 tmux
+tmux.stripped

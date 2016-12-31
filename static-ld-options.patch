@@ -1,10 +1,10 @@
---- pandoc.cabal.original
-+++ pandoc.cabal
-@@ -407,6 +407,7 @@
+--- a/pandoc.cabal
++++ b/pandoc.cabal
+@@ -424,6 +424,7 @@
    Buildable:       True
  
  Executable pandoc
-+  ld-options: -static 
++  ld-options: -static
    Build-Depends: pandoc,
-                  pandoc-types >= 1.16 && < 1.17,
+                  pandoc-types >= 1.17 && < 1.18,
                   base >= 4.2 && <5,
