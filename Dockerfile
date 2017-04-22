@@ -1,9 +1,10 @@
-from mitchty/alpine-ghc:latest
+from alpine:edge
 
 workdir /tmp
+run echo "http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
 run apk update && apk upgrade && \
-    apk add make gcc musl-dev linux-headers bash file curl bsd-compat-headers autoconf automake protobuf-dev zlib-dev openssl-dev g++
+    apk add ghc cabal make gcc musl-dev linux-headers bash file curl bsd-compat-headers autoconf automake protobuf-dev zlib-dev openssl-dev g++ upx
 
 env dest_prefix /usr
 
@@ -30,7 +31,7 @@ run curl -LO ftp://ftp.gnu.org/gnu/ncurses/$ncurses_name.tar.gz -o /tmp/$ncurses
     rm -fr /tmp/$ncurses_name.tar.gz /tmp/$ncurses_name
 
 # et tmux
-env tmux_version 2.3
+env tmux_version 2.4
 env tmux_name tmux-$tmux_version
 env tmux_url $tmux_name/$tmux_name
 add https://github.com/tmux/tmux/releases/download/$tmux_version/$tmux_name.tar.gz /tmp/$tmux_name.tar.gz
@@ -41,7 +42,10 @@ run tar xvzf /tmp/$tmux_name.tar.gz && \
     make install && \
     rm -fr /tmp/$tmux_name.tar.gz /tmp/$tmux_name && \
     cp /usr/bin/tmux /usr/bin/tmux.stripped && \
-    strip /usr/bin/tmux.stripped
+    strip /usr/bin/tmux.stripped && \
+    cp /usr/bin/tmux /usr/bin/tmux.upx && \
+    cp /usr/bin/tmux.stripped /usr/bin/tmux.stripped.upx && \
+    upx --best --ultra-brute /usr/bin/tmux.upx /usr/bin/tmux.stripped.upx
 
 # htop
 env htop_version 2.0.2
@@ -54,10 +58,13 @@ run tar xvzf /tmp/$htop_name.tar.gz && \
     make install && \
     rm -fr /tmp/$htop_name.tar.gz /tmp/$htop_name && \
     cp $dest_prefix/bin/htop $dest_prefix/bin/htop.stripped && \
-    strip $dest_prefix/bin/htop.stripped
+    strip $dest_prefix/bin/htop.stripped && \
+    cp $dest_prefix/bin/htop $dest_prefix/bin/htop.upx && \
+    cp $dest_prefix/bin/htop.stripped $dest_prefix/bin/htop.stripped.upx && \
+    upx --best --ultra-brute $dest_prefix/bin/htop.upx $dest_prefix/bin/htop.stripped.upx
 
 # mobile shell
-env mosh_version 1.2.6
+env mosh_version 1.3.0
 env mosh_name mosh-$mosh_version
 env mosh_url https://github.com/mobile-shell/mosh/archive/$mosh_name.tar.gz
 add $mosh_url /tmp/$mosh_name.tar.gz
@@ -71,7 +78,13 @@ run tar xvzf /tmp/$mosh_name.tar.gz && \
     cp $dest_prefix/bin/mosh-client $dest_prefix/bin/mosh-client.stripped && \
     strip $dest_prefix/bin/mosh-client.stripped && \
     cp $dest_prefix/bin/mosh-server $dest_prefix/bin/mosh-server.stripped && \
-    strip $dest_prefix/bin/mosh-server.stripped
+    strip $dest_prefix/bin/mosh-server.stripped && \
+    cp $dest_prefix/bin/mosh-client $dest_prefix/bin/mosh-client.upx && \
+    cp $dest_prefix/bin/mosh-client.stripped $dest_prefix/bin/mosh-client.stripped.upx && \
+    cp $dest_prefix/bin/mosh-server $dest_prefix/bin/mosh-server.upx && \
+    cp $dest_prefix/bin/mosh-server.stripped $dest_prefix/bin/mosh-server.stripped.upx && \
+    upx --best --ultra-brute $dest_prefix/bin/mosh-client.upx $dest_prefix/bin/mosh-client.stripped.upx \
+         $dest_prefix/bin/mosh-server.upx  $dest_prefix/bin/mosh-server.stripped.upx
 
 # pandoc
 env pandoc_version 1.19.1
@@ -83,7 +96,10 @@ run cd /tmp/pandoc-$pandoc_version && \
     sed -i '/Executable pandoc/a \ \ ld-options: -static' pandoc.cabal && \
     cabal install --flags="embed_data_files" && \
     cp $cabaldir/pandoc $cabaldir/pandoc.stripped && \
-    strip $cabaldir/pandoc.stripped
+    strip $cabaldir/pandoc.stripped && \
+    cp $cabaldir/pandoc $cabaldir/pandoc.upx && \
+    cp $cabaldir/pandoc.stripped $cabaldir/pandoc.stripped.upx && \
+    upx --best --ultra-brute $cabaldir/pandoc.upx $cabaldir/pandoc.stripped.upx
 
 # oniguruma for jq regex support
 env oni_version 5.9.6
@@ -109,5 +125,8 @@ run tar xvzf /tmp/jq.tar.gz && \
     make install && \
     rm -fr /tmp/$jq && \
     cp $dest_prefix/bin/jq $dest_prefix/bin/jq.stripped && \
-    strip $dest_prefix/bin/jq.stripped
+    strip $dest_prefix/bin/jq.stripped && \
+    cp $dest_prefix/bin/jq $dest_prefix/bin/jq.upx && \
+    cp $dest_prefix/bin/jq.stripped $dest_prefix/bin/jq.stripped.upx && \
+    upx --best --ultra-brute $dest_prefix/bin/jq.stripped.upx $dest_prefix/bin/jq.upx
 cmd ["bash"]
